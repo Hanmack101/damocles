@@ -1,0 +1,99 @@
+    //set to zero when initialised 
+    //differentiate between a good and bad knock - yellow light + increment
+    //depending on the number of knocks, rotate clockwise or anticlockwise - not done
+    //use button to reset counter - not done 
+
+    
+     #include <Servo.h>
+     Servo myServo;
+    
+     const int piezo = A0;
+     const int yellowLed = 3;
+     const int resetButton = 2;
+    
+     int knockDetect;
+     int resetTrigger;
+    
+     int numOfValidKnocks = 0;
+     int numOfProcessedKnocks = 0;
+    
+     const int quietKnock = 3;
+     const int loudKnock = 900;
+     
+//all you're doing here is setting a state to test later
+     boolean locked = true;
+    
+    
+    void setup() {
+      myServo.attach(9);
+      pinMode (yellowLed, OUTPUT);
+      pinMode (resetButton, INPUT);
+      
+      Serial.begin(9600);
+
+      myServo.write(0);
+      Serial.println("Tinky Sits at 0");
+      delay(1000);
+      Serial.println("Waiting");
+      delay(1000);
+      
+    }
+
+
+void loop() {
+  incrementIfAKnockIsDetected();
+  spinIfThereHaveBeenFiveKnocks();  
+
+}
+
+//-------function time-------//
+
+ void incrementIfAKnockIsDetected(){
+  
+    int volume = analogRead(piezo); 
+    //Serial.print("volume is ");
+    //Serial.println(volume);
+  //- I put this here bc in the void loop is not global?
+  //there is something wrong with this range 
+    if(volume > quietKnock && volume < loudKnock){
+        digitalWrite(yellowLed, HIGH);
+        
+        //without this num of valid knocks never increments, and spinTinky never called
+        numOfValidKnocks ++;
+        Serial.print("** Increasing the number of valid knocks to ");
+        Serial.println(numOfValidKnocks);
+        delay(50);
+      } else {
+        //Serial.println("No valid noise");
+      }
+  }
+  
+  void spinIfThereHaveBeenFiveKnocks() {
+      if(numOfValidKnocks > 0 && numOfValidKnocks % 5 == 0){
+      //if(numOfValidKnocks > 0 && numOfValidKnocks == 5){
+        if(numOfProcessedKnocks < numOfValidKnocks){
+          Serial.println("Div by five - spinning");
+          spinTinky();
+          Serial.println("Waiting after spinning");
+          //critical delay
+          delay(2000);
+          numOfProcessedKnocks = numOfValidKnocks;
+        }
+       } 
+    }
+
+  void spinTinky(){
+      Serial.println("tinky spinning 90*");
+      
+      myServo.write(90);
+      delay(2000);
+      Serial.println("tinky spinning back");
+      myServo.write(0);
+    }
+
+
+
+
+
+  
+        
